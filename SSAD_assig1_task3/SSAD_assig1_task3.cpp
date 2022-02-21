@@ -1,13 +1,25 @@
+// 21.02.2022 | Gubaidullin Marat | B21-02 | SSAD, Assignment 1, Task 3.
+/*
+* Return the head of a linked list after swapping every two adjacent nodes.
+* You must solve the problem without changing the values in the nodes of the list (i.e., only nodes themselves may be changed.)
+*
+* Sample 
+* Input: head = 1 2 3 4
+* Output: 2 1 4 3
+*
+* Note:  input.txt contains array as shown in the sample above. Read and write, compute and write your result to output.txt .
+*/
 #include <iostream>
 #include <fstream>
 #include <string>
-using namespace std;
 
-string reverse_string(string s) {
-	string res;
+std::string reverse_string(std::string s) {
+	std::string result;
+	
+	// from the end to beggining of s
 	for (int i = size(s) - 1; i >= 0; i--)
-		res += s[i];
-	return res;
+		result += s[i];
+	return result;
 }
 
 class LinkedList {
@@ -15,11 +27,16 @@ class LinkedList {
 		int data;
 		Node* next;
 	};
+private:
+	Node* head;
+	int currentsize;
 public:
+	// constructor
 	LinkedList() {
 		head = NULL;
 		currentsize = 0;
 	}
+	// desctructor
 	~LinkedList() {
 		Node* next = head;
 		while (next) {
@@ -36,21 +53,30 @@ public:
 		head = newNode;
 		currentsize++;
 	}
-	void swap_with_the_next_node(int index) { // no exception handling, make sure to pass index i iff node with index i+1 exists
-		Node* currentNode = head;
-		int i = currentsize - index - 2; // i steps are required to reach the node with index = (index + 1)
-		Node* hNode; // additional node
 
-		if (i == 0) { // in case if 0 steps are required, then the node with index = (index + 1) is the head and there is no
-						  // need to connect the previous node to the current node
+	// no exception handling, make sure to pass index i iff node with index i+1 exists
+	void swap_with_the_next_node(int index) { 
+		Node* currentNode = head;
+
+		// i steps are required to reach the node with index = (index + 1)
+		int i = currentsize - index - 2;
+
+		// additional node
+		Node* hNode; 
+
+		// in case if 0 steps are required, then the node with index = (index + 1) is the head 
+		// and there is no need to connect the previous node to the current node
+		if (i == 0) {			  
 			hNode = currentNode->next;
 			currentNode->next = hNode->next;
 			hNode->next = currentNode;
 			head = hNode;
 		}
+
+		// in case if >0 steps are required, then the node with index = (index + 1) is not the head and it is
+		// necessary to link it with the previous node, so we need to reach the node with index = (index + 2)
 		else {
-			i--; // in case if >0 steps are required, then the node with index = (index + 1) is not the head and it is
-				 // necessary to link it with the previous node, so we need to reach the node with index = (index + 2)
+			i--; 
 			while (i--)
 				currentNode = currentNode->next;
 			hNode = currentNode->next->next;
@@ -59,57 +85,65 @@ public:
 			currentNode->next = hNode;
 		}
 	}
-	string get_list() {
-		string s;
+	
+	// get all elements of the list in the right order 
+	std::string get_list() {
+
+		// in case if list is empty
+		if (currentsize == 0)
+			return "";
+
+		// additional Node for collecting data
 		Node* next = head;
-		while (next) {
-			s += to_string(next->data) + ",";
+
+		// s contains elements in the wrong order
+		std::string s = std::to_string(next->data);
+
+		while (next->next) {
 			next = next->next;
+			s += " " + std::to_string(next->data);
 		}
-		
-		s.pop_back();
+
+		// reversing string to organize it
 		s = reverse_string(s);
-		return "[" + s + "]";
+
+		// returning the result
+		return s;
 	}
-private:
-	Node* head;
-	int currentsize;
+
+	// size getter
+	int get_size() {
+		return currentsize;
+	}
 };
 
-string solution(LinkedList* LL, int& n) {
-	for (int i = 0; i < n - 1; i += 2)
+std:: string solution(LinkedList* LL) {
+	// for every second node (0, 2, 4...) swap it with the next one
+	for (int i = 0; i < LL->get_size() - 1; i += 2)
 		LL->swap_with_the_next_node(i);
-	
 	return LL->get_list();
 }
 
 int main() {
-	string bins; // string for collecting useless data from input
-	ifstream inp("input.txt"); // "head = [1,2,3,4,5,6,7,8]"
-	ofstream out("output.txt"); // "[2,1,4,3,6,5,8,7]"
-	int numberOfElements = 0; // number of elements in linked list
+	std::string s; // string for collecting data from input
+	std::ifstream inp("input.txt"); // "head = 1 2 3 4 5 6 7 8"
+	std::ofstream out("output.txt"); // "2 1 4 3 6 5 8 7"
 	LinkedList* LL = new LinkedList();
 
-	getline(inp, bins, '['); // useless data "head = ["
-	while (getline(inp, bins, ','))
-		numberOfElements++; // counting number of elements using separation by comma
-	inp.close();
-	inp.open("input.txt"); // open file again to read elements
+	// skipping useless data "head = "
+	getline(inp, s, ' ');
+	getline(inp, s, ' ');		
 
-	string* arr = new string[numberOfElements];
+	// adding elements to a linked list (seperated by space)
+	while (getline(inp, s, ' '))
+		LL->add(stoi(s)); 
 
-	
-	getline(inp, bins, '[');
-	for (int i = 0; i < numberOfElements - 1; i++)
-		getline(inp, arr[i], ',');
-	getline(inp, arr[numberOfElements - 1], ']');
+	// printing result to output.txt
+	out << solution(LL); 
 
-	for (int i = 0; i < numberOfElements; i++)
-		LL->add(stoi(arr[i]));
-
-	out << solution(LL, numberOfElements);
+	// garbage collecting
 	inp.close();
 	out.close();
-	delete[] arr;
+	delete LL;
 	return 0;
 }
